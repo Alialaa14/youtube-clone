@@ -16,4 +16,6 @@ export const ENV = {
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   },
   CORS_ORIGIN: process.env.CORS_ORIGIN,
+  GMAIL_EMAIL: process.env.GMAIL_EMAIL,
+  GMAIL_PASSWORD: process.env.GMAIL_PASSWORD,
 };

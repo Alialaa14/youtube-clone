@@ -1,7 +1,6 @@
 import multer from "multer";
 import path from "path";
-import ApiError from "./ApiError.js";
-
+import ApiError from "../utils/ApiError.js";
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -25,3 +24,5 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage, fileFilter });
+
+export default upload;

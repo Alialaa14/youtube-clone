@@ -1,4 +1,7 @@
 import { Schema, model } from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { ENV } from "../utils/ENV.js";
 
 const userSchema = new Schema(
   {
@@ -17,20 +20,23 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    fullName: {
+    fullname: {
       type: String,
       required: [true, "Full name is required"],
       trim: true,
       index: true,
     },
     avatar: {
-      public_id: String,
-      url: String,
+      public_id: { type: String, default: "" },
+      url: { type: String },
     },
 
     coverImage: {
-      public_id: String,
-      url: String,
+      public_id: { type: String, default: "" },
+      url: {
+        type: String,
+        default: "https://getuikit.com/v2/docs/images/placeholder_600x400.svg",
+      },
     },
 
     password: {
@@ -85,7 +91,7 @@ const userSchema = new Schema(
     },
 
     refreshPasswordToken: String,
-    refreshPasswordTokenExpiry: String,
+    refreshPasswordTokenExpiry: Date,
 
     isAdmin: {
       type: Boolean,
@@ -94,7 +100,27 @@ const userSchema = new Schema(
   },
   { timestamps: true },
 );
+userSchema.methods.isPasswordCorrect = function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign({ id: this._id }, ENV.ACCESS_TOKEN_SECRET, {
+    expiresIn: ENV.ACCESS_TOKEN_EXPIRY,
+  });
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign({ id: this._id }, ENV.REFRESH_TOKEN_SECRET, {
+    expiresIn: ENV.REFRESH_TOKEN_EXPIRY,
+  });
+};
+
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
 const User = model("User", userSchema);
 
 export default User;
